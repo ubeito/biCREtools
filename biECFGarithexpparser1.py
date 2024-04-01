@@ -12,10 +12,10 @@ def E():
       term = term * factor   # <:_3
       i += 1
       if inp[i] != '*': break   # <:_2
-      i += 1 # else: exp[i] == '*'
+      i += 1 # else: inp[i] == '*'
     exp = exp + term
     if inp[i] != '+': break   # <:_1
-    i += 1 # else: exp[i] == '+'
+    i += 1 # else: inp[i] == '+'
   return exp
 while (True):
   i = 0
