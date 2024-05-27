@@ -1,6 +1,6 @@
 # nim js biCREtoolsJS.nim => biCREtoolsJS.js
 import bicreMATCHER, tables, sequtils, sets # import bicrePARSERmodule and bicrePREPROrepeat indirectly throuth bicreMATCHER
-import bicrePARSERdiagram
+import bicrePARSERdiagram, biCREtoRE
 #template `=~`*(x: string, ptt: string): untyped = # to call `runonfrom`
 #let x = "webmaster@example.com" #,r"a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-@a-zA-Z0-9.a-zA-Z0-9.a-zA-Z0-9","ab@cd-.ef"
 #let ptt = r":>[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?<:\.)*"
@@ -42,4 +42,9 @@ proc getAllkindsstr():  cstring {.exportc.} = # the button disable = true until 
   let akindsstr = if akindsseq == @[]: "None" else: akindsseq.foldl((a & ", " & b)) # cannot fold @[] in case of Hashset
   result = "available (ini, acc) color pairs = " & akindsstr & "\p\p"
 
+proc getREstrs(ptt: cstring): cstring {.exportc.} = # the button disable = false from beginning
+  let tkseqs = toREs($ptt)
+  result = "decomposed expressions = \p"
+  for i, tks in tkseqs: result &= $i & ": \"" & tks.toStr & "\"\p"
+  result &= "\p"
 

@@ -120,79 +120,79 @@ proc expndrepeat*(biRE: string): string =
       else: nseg = "" # ε, n=0
     result = len(str[0..<i0] & nseg) # new current pos // 
     str = str[0..<i0] & nseg & str[i2..<str.len] # str changed; neglect part of curly braces {m} = str[i1..<i2] 
-  # E -> :>1{ ( :>2{ :>3( '(' E ')'<:31 + 'a'<:32 + '<:'<:33 + ':>'<:34 )( '*'<:35 + '?'<:36)<:2 }*<:1 + 'ε'<:12) '|' }*
+  # E -> :>1{ ( :>2{ :>3( '(' E ')'<:31 + 'a'<:32 + '<:'<:33 + ':>'<:34 )( '*'<:35 + '?'<:36)<:2 }*<:1 '|' }*
   proc E() = 
-  #  var i0: int # starting position index of token 
     while (true): # :>1
-      if str[i] != '|' and str[i] != '$' and str[i] != ')': # for branch to <:12
-        while (true): ## :>2
-          let i0 = i  # starting position index of segment to be repeated #$
-          if str[i] == '(': ### :>3 
-            #token[i] = (avachar, "(") #!!!
-            inc(i); E()
-            if str[i] != ')': raise newException(IOError, "NOT ')'")
-            else: ### <:31
-              #token[i] = (avachar, ")") #!!!
-              inc(i)
-          elif str[i] in availChars - reservChars + {'[','\\','.'} - {':','<'}: # str[i] == 'a': ### <:32
-            if str[i] == '[': i += str[i..^1].find(']') #; token[i0] = (chclass, str[i0+1..<i]) # i0 = i;  # skip '[...]' for char class
-            elif str[i] == '\\': inc(i) #token[i] = (escchar, $str[i+1]); inc(i) # skip one char for escape seq
-            elif str[i] == '.': discard #token[i] = (dotany, ".") # discard # match any single char
-            else: discard ##token[i] = (avachar,$str[i])
+      while (true): ## :>2
+        let i0 = i  # starting position index of segment to be repeated #$
+        if str[i] == '(': ### :>3 
+          #token[i] = (avachar, "(") #!!!
+          inc(i); E()
+          if str[i] != ')': raise newException(IOError, "NOT ')'")
+          else: ### <:31
+            #token[i] = (avachar, ")") #!!!
             inc(i)
-          elif str[i] == ':':
-            if str[i+1] == '>': # init state pos symbol ### <:33
-              inc(i); inc(i)
-              if str[i] == '^': inc(i); inc(i) #token[i0] = (initpos, $str[i0+3]); inc(i); inc(i) # with additional one char label
-              else: discard #token[i0] = (initpos, "")
-            else: # ':' is not init state pos symbol (an ordinary char ### <:32)
-              inc(i) #!!
-          elif str[i] == '<':
-            if str[i+1] == ':': # acc state pos symbol ### <:34
-              inc(i); inc(i)
-              if str[i] == '_': inc(i); inc(i) #token[i0] = (accpos, $str[i0+3]); inc(i); inc(i) # with additional one char label
-              else: discard #token[i0] = (accpos, "")
-            else: # '<' is not acc state pos symbol (an ordinary char ### <:32)
-              inc(i) #!!
-          else: raise newException(IOError, "NOT '(','a','[','\\','.','<',':'") # str[i] != '(' and str[i] != 'a' and ...
+        elif str[i] in availChars - reservChars + {'[','\\','.'} - {':','<'}: # str[i] == 'a': ### <:32
+          if str[i] == '[':
+            i += str[i..^1].find(']') 
+            #if i == i0 + 1: token[i0] = (empstr, "[]"); helperPr = (true, @[], @[]) #!4
+            #else: token[i0] = (chclass, ptt[i0+1..<i]) # i0 = i;  # skip '[...]' for char class
+          elif str[i] == '\\': inc(i) #token[i] = (escchar, $str[i+1]); inc(i) # skip one char for escape seq
+          elif str[i] == '.': discard #token[i] = (dotany, ".") # discard # match any single char
+          else: discard ##token[i] = (avachar,$str[i])
+          inc(i)
+        elif str[i] == ':':
+          if str[i+1] == '>': # init state pos symbol ### <:33
+            inc(i); inc(i)
+            if str[i] == '^': inc(i); inc(i) #token[i0] = (initpos, $str[i0+3]); inc(i); inc(i) # with additional one char label
+            else: discard #token[i0] = (initpos, "")
+          else: # ':' is not init state pos symbol (an ordinary char ### <:32)
+            inc(i) #!!
+        elif str[i] == '<':
+          if str[i+1] == ':': # acc state pos symbol ### <:34
+            inc(i); inc(i)
+            if str[i] == '_': inc(i); inc(i) #token[i0] = (accpos, $str[i0+3]); inc(i); inc(i) # with additional one char label
+            else: discard #token[i0] = (accpos, "")
+          else: # '<' is not acc state pos symbol (an ordinary char ### <:32)
+            inc(i) #!!
+        else: raise newException(IOError, "NOT '(','a','[','\\','.','<',':'") # str[i] != '(' and str[i] != 'a' and ...
 # ---------------------------------------------------------------------------------------- ↓ added
-          let i1 = i # ending position index (+1) of segment to be repeated #$
-          if str[i] == '{': ### <:35 for bounded repeat
-            var d1, d2: int
-            inc(i)
-            if str[i].isDigit:
-              d1 = parseNat() # discard # "{d+"
-              if str[i] == ',': # "{d+,"
-                inc(i) 
-                if str[i] == '}': inc(i); i = expandD1C(d1, i0, i1, i) # echo "{d+,} = ", d1 # "{d+,}" # <:_B
-                else: # "{d+,X"
-                  d2 = parseNat()
-                  if d2 == -1: raise newException(IOError, "NOT digit") 
-                  else: # "{d+,d+"
-                    #inc(i)
-                    if str[i] == '}': inc(i); i = expandD1D2(d1, d2, i0, i1, i) # echo "{d+,d+} = ", d1, ", ", d2 # "{d+,d+}" <:_A
-                    else: raise newException(IOError, "NOT '}'")
-              elif str[i] == '}': # "{d+}"
-                inc(i); i = expandD(d1, i0, i1, i) # echo "{d+} = ", d1 # "{d+}" # <:_C
-              else: raise newException(IOError, "NOT ',','}'")
-            elif str[i] == ',':
-              inc(i) # "{,"
-              d2 = parseNat() 
-              if  d2 == -1: raise newException(IOError, "NOT digit")
-              elif str[i] == '}': inc(i); i = expandCD2(d2, i0, i1, i) # echo "{,d+} = ", d2 # "{,d+}" <:_D
-              else: raise newException(IOError, "NOT '}'")
-            else: raise newException(IOError, "NOT '{',','")
-            # let i2 = i # ending position index (+1) of repeat marker "{...}" #$
+        let i1 = i # ending position index (+1) of segment to be repeated #$
+        if str[i] == '{': ### <:35 for bounded repeat
+          var d1, d2: int
+          inc(i)
+          if str[i].isDigit:
+            d1 = parseNat() # discard # "{d+"
+            if str[i] == ',': # "{d+,"
+              inc(i) 
+              if str[i] == '}': inc(i); i = expandD1C(d1, i0, i1, i) # echo "{d+,} = ", d1 # "{d+,}" # <:_B
+              else: # "{d+,X"
+                d2 = parseNat()
+                if d2 == -1: raise newException(IOError, "NOT digit") 
+                else: # "{d+,d+"
+                  #inc(i)
+                  if str[i] == '}': inc(i); i = expandD1D2(d1, d2, i0, i1, i) # echo "{d+,d+} = ", d1, ", ", d2 # "{d+,d+}" <:_A
+                  else: raise newException(IOError, "NOT '}'")
+            elif str[i] == '}': # "{d+}"
+              inc(i); i = expandD(d1, i0, i1, i) # echo "{d+} = ", d1 # "{d+}" # <:_C
+            else: raise newException(IOError, "NOT ',','}'")
+          elif str[i] == ',':
+            inc(i) # "{,"
+            d2 = parseNat() 
+            if  d2 == -1: raise newException(IOError, "NOT digit")
+            elif str[i] == '}': inc(i); i = expandCD2(d2, i0, i1, i) # echo "{,d+} = ", d2 # "{,d+}" <:_D
+            else: raise newException(IOError, "NOT '}'")
+          else: raise newException(IOError, "NOT '{',','")
+          # let i2 = i # ending position index (+1) of repeat marker "{...}" #$
 # ---------------------------------------------------------------------------------------- ↑ added
-          if str[i] == '*' or str[i] == '+': ### <:35
-            inc(i)
-          if str[i] == '?': ### <:36
-            inc(i)
-          if str[i] == '|' or str[i] == '$' or str[i] == ')': # ※ one charactor look-ahead
-            break ## <:2  (concat)
-        # end of concat operators
+        if str[i] == '*' or str[i] == '+': ### <:35
+          inc(i)
+        if str[i] == '?': ### <:36
+          inc(i)
+        if str[i] == '|' or str[i] == '$' or str[i] == ')': # ※ one charactor look-ahead
+          break ## <:2  (concat)
+      # end of concat operators
       # end of + operators
-      # else (if ptt[i] == '|' or ptt[i] == '$' or ptt[i] == ')': # implicitly helperAr = (true,@[],@[]) <:12 
       if str[i] != '|':
         break # <:1
       inc(i) # and repeat when str[i] == '|'
@@ -203,7 +203,8 @@ proc expndrepeat*(biRE: string): string =
   return str[0..^2] # augmented symbol '$' deleted 
 # end of expandrep()
 when isMainModule:
-  var str = r":>^N97(8|9)[- ]?:>^O([0-9][- ]?){9}[0-9xX]<:" # r":>((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)<:\.){4}" # r":>[a-zA-Z0-9.!#$%&’*+/=?ˆ_‘{|}˜-]+@([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?<:\.)*" # r":>(a?){3}(a{4})*<:" # r":>(0{8}0*|(0{3}|0{5})*)<:"
+  var str = r":>((a<:b){1,}c)*"#=> :>((ab)*(a<:b)c)*=:>((a<:b)+c)*:test2 # r"(a:>b){1,}<:"#=> (a:>b)(ab)*<:
+# r":>^N97(8|9)[- ]?:>^O([0-9][- ]?){9}[0-9xX]<:" # r":>((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)<:\.){4}" # r":>[a-zA-Z0-9.!#$%&’*+/=?ˆ_‘{|}˜-]+@([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?<:\.)*" # r":>(a?){3}(a{4})*<:" # r":>(0{8}0*|(0{3}|0{5})*)<:"
 # r":>a{,3}<:" # r":>a{3,}<:" # r":>a{3,4}<:" # r":>a{3}<:" # ==> :>aaa<: 
 # r":>(0:><:1){3}<:" # ==> :>(0:>1)(01){1}(0<:1)
 # r":>((a<:b){2}c){3}" # ==> :>((ab)(ab)c)((ab)(ab)c)((ab)(a<:b)c)
@@ -216,20 +217,20 @@ when isMainModule:
   echo "expanded regex = ", expndrepeat(str)
 ##############################################################################################################################
 #     +---------------------------------------+
-#     | +-------- ε -------->◎               ↑                            <== <:12
-#     ↓/               {$,|,]} \↑ {$}         | ε                          ↑: node labeled '＋' code
-# E ->○ - - - - - - T - - - - ->◎---- | ---->○                            <== <:1
-#     | ←--------- ε ---------+ ↑\ {)}                                     ↑: node labeled '・' code
+#     ↓                         ↑ {$}         ↑ ε                  ↑: node labeled '＋' code
+# E ->○ - - - - - - T - - - - ->◎---- | ---->○                    <== <:1
+#     | ←--------- ε ---------+ ↑\ {)}                             ↑: node labeled '・' code
 #     ↓/         {(,a,[,\,:,<} \/ {$,|,)}        
-# T ->○ - - - - - - F - - - - >◎<= = = = = =                              <== <:2
-#     ↓ {(,a,[,\,:,<}              ↓ {)}      ↑                            ↑: node labeled '(E)' code
-# F ->○--- ( --->○ - - - E - - - ->○--- ) --->◎                           <== <:31
-#     |\                                       \↑                     ↑    ↑: node labeled 'a' code, ↑: node labeled '*' code
-#     | +----------- a OR [X] OR \b ---------->◎--- * OR + or {x} -->◎   <== <:32, <:35
-#     |\                                     ↑／|\                    ↑    ↑: node labeled ':>' code, ↑: node labeled '?' code
-#     | +------------ :> OR :>^b ----------->◎ | +-------- ? ------->◎   <== <:33, <:36
-#      \                                     ↑／                           ↑: node labeled '<:' code
-#       +------------ <: OR <:_b ----------->◎                            <== <:34
+# T ->○ - - - - - - F - - - - >◎<= = = = = =                      <== <:2
+#     ↓ {(,a,[,\,:,<}              ↓ {)}      ↑                    ↑: node labeled '(E)' code
+# F ->○--- ( --->○ - - - E - - - ->○--- ) --->◎                   <== <:31
+#     |\                                       \↑             ↑    ↑: node labeled 'a' code, ↑: node labeled '*' code
+#     | +-------- a OR [X] OR \b OR [] ------->◎-- * OR + -->◎   <== <:32, <:35
+#     |\                                     ↑／|\            ↑    ↑: node labeled ':>' code, ↑: node labeled '?' code
+#     | +------------ :> OR :>^b ----------->◎ | +---- ? --->◎   <== <:33, <:36
+#      \                                     ↑／                   ↑: node labeled '<:' code
+#       +------------ <: OR <:_b ----------->◎                    <== <:34
+# ※ For right associativities of '*','+', rule "F -> (a + [x])('*' + '+')" must change to "F -> (a + [x])('*' + '+')*" # r":>a*+<:": => error
 ##############################################################################################################################
 # X --> '{' d+ ',' d+ '}' <:_A | '{' d+ ',' '}' <:_B | '{' d+ '}' <:_C | '{' ',' d+ '}' <:_D
 # X --- { --->○--- d+ --->○--- , --->○--- d+ --->○--- } --->◎--->   <== <:_A
@@ -242,3 +243,4 @@ when isMainModule:
 #       ↓
 #       +--- <: --->◎--- _z --->◎
 ##############################################################################################################################
+#expanded regex = :>^N97(8|9)[- ]?:>^O([0-9][- ]?)([0-9][- ]?)([0-9][- ]?)([0-9][- ]?)([0-9][- ]?)([0-9][- ]?)([0-9][- ]?)([0-9][- ]?)([0-9][- ]?)[0-9xX]<:

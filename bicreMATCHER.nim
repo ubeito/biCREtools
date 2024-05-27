@@ -1,6 +1,7 @@
 #【両端色付き正規表現に対応する位置εオートマトンの入力テキストに対するマッチング written by Akira Ito】
 import bicrePARSERmodule, bicrePREPROrepeat, tables, sequtils, parseopt, sets
 export bicrePARSERmodule, bicrePREPROrepeat # for bicre.nim
+#var ptt = r":>(a|[])(b|[])<:"; var xs = @["a","b","ab","","ba","aa","bb"] # =(a+ε)(b+ε)=ab+a+b+ε for check of newly introduced empty string symbol [] 
 #var ptt = r":>^R[+-]:>^C[0-9]*(\.[0-9]|[0-9]<:_G\.)[0-9]*<:_B"; var xs = @["12.34","-1.23","1234","+123",".123","123.","."] # DCFA accepting binary fractional or integer numbers 
 #var ptt = r":>\[([a-z ]*)\]\((https?://[^)]+)\)<:"; var xs = @["[my link](https://example.com)","[ mylink ](http:// e1xAa$m!p/l-e.c]o{m)"]
 #var ptt = r":>^00:>^10:>^201<:_41<:_51<:_6"; var xs = @["01","011","0111","001","0011","00111","0001","00011","000111"] # biDCFA accepting 9 different unary languages
@@ -17,7 +18,7 @@ export bicrePARSERmodule, bicrePREPROrepeat # for bicre.nim
 #var ptt = r"(aa(ab|ba)*bb|ab|ba|bb(ab|b:><:a)*aa)*"; var xs = @["ab","aabb","aaaaaabbbbbb","abab","aa","bb"] # monoDCFA expressing depth-6 buffer
 #var ptt = r"((b:><:b|aa)*(b:><:a|ab)(a:><:a|bb)*(a:><:b|ba))*"; var xs = @["aabb","abab","aa","ab","bba"] # monoDCFA expressing both a and b are even
 #var ptt = r":>(a|b)*a(a|b)(a|b)<:_Y|:>((a|b)*b(a|b)(a|b)|(a|b)?|(a|b)(a|b))<:_N"; var xs = @["abaab","bab","ab","bb",""] # self-verifying DCFA accepting the 3rd from right end is a
-#var ptt = r":>((0|(0|1<:_B0)(000<:_B0)*001)(<:_R1(0<:_G00<:_B0)*0<:_G01)*<:_R0)*(0|1<:_B0)(000<:_B0)*0<:_G"; var xs = @["0","1","00","0000"] # Example 1 CFA in first IEICE paper
+var ptt = r":>((0|(0|1<:_B0)(000<:_B0)*001)(<:_R1(0<:_G00<:_B0)*0<:_G01)*<:_R0)*(0|1<:_B0)(000<:_B0)*0<:_G"; var xs = @["0","1","00","0000"] # Example 1 CFA in first IEICE paper
 ##var ptt = r":>(0<:_R0)*0(0<:_G00<:_B)"; var xs = @["0000"] #var ptt = r":>(0<:_R0|00<:_G)"; var xs = @["00"] # test for the above ptt
 #var ptt = r"(:>a*bb*<:a)*"; var xs = @["abb","bba","baba","b"] # DCFA D21 accepting right end is b
 #var ptt = r"((b|a:>a*b)(a|bb*<:_1a)<:_2)*"; var xs = @["abbb","bbaa","baba","b"] # DCFA D22 accepting the 2nd from right end is b
@@ -33,7 +34,7 @@ export bicrePARSERmodule, bicrePREPROrepeat # for bicre.nim
 ##var ptt = r":>.*(ab.*cd<:_1|ef.*gf<:_2)" # "The XFA recognizing both .*ab.*cd and .*ef.*gh without state space blowup"
 ##var ptt = r":>(expr1<:_1|.*expr2<:_2)" # "Simpliﬁed NXFA construction step for parallel concatenation expr1#expr2"
 # [numbered repeat examples] -------------------------------------------------------------------------------------
-var ptt = r":>[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?<:\.)*"; var xs = @["webmaster@example.com",r"a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-@a-zA-Z0-9.a-zA-Z0-9.a-zA-Z0-9"] # email addresses in HTML Living Standard
+#var ptt = r":>[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?<:\.)*"; var xs = @["webmaster@example.com",r"a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-@a-zA-Z0-9.a-zA-Z0-9.a-zA-Z0-9"] # email addresses in HTML Living Standard
 #var ptt = r":>^N97(8|9)[- ]?:>^O([0-9][- ]?){9}[0-9xX]<:"; var xs = @["4-00-310101-4","978-4-00-310101-8"] # "13-digit new ISBN (not sum check)" "10-digit old ISBN (not sum check)" "neither ISBN code"
 #var ptt = r":>((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)<:\.){4}"; var xs = @["230.201.000.11", "192.0.2.0", "198.51.100.0","256.0000..1"] # monoCRE expressing IPv4 decimal address
 #var ptt = r":>(a?){3}(a{4})*<:"; var xs = @["","a","aa","aaa","aaaa","aaaaa"] # equality: (epsilon + a + aa + ... + a^{n-1})(a^n)* == a*
@@ -102,10 +103,9 @@ proc runonfrom*(x: string, einitconfig: Config, token: Token, follow: Follow): C
             #if tkstr[j] == '\\': ccset = ccset + {tkstr[j+1]}; j = j + 1 # "+\-" ==> '+' & '\\' & '-' # [\\] ==> [\]
             if j+1 < len(tkstr)-e and tkstr[j+1] == '-': ccset = ccset + {tkstr[j]..tkstr[j+2]}; j = j + 3 # (elif ==> if)
             else: ccset = ccset + {tkstr[j]}; j = j + 1
-
           if tkstr[0] == '^': ccset = availchars - ccset
           if symbol in ccset: result[i] &= curconfig[i]; result[i] = deduplicate(result[i])
-        else: discard # {initpos, accpos}
+        else: discard # {initpos, accpos} + {empstr}
   # end of delta
   var config = einitconfig
   var l = 0 # current input position

@@ -1,6 +1,9 @@
 #【両端色付き付き正規表現に対応する位置εオートマトンの遷移図出力 written by Akira Ito】
 import bicrePARSERmodule, tables, sequtils, algorithm, parseopt
-var ptt = r":>^R[+\-]:>^C[0-9]*(\.[0-9]|[0-9]<:_G\.)[0-9]*<:_B" # r":>(0|1)*1(0|1)<:(0|1)<:" # r":>(0|1(<:_B01*<:_C0|11)*1<:_D0)*<:_A" # r":>([A-Z][a-z]*<: )*" # r":>(0:><:1)*<:" # r":>^00:>^10:>^201<:_41<:_51<:_6" # r"(a|:>b)*<:" # r"empty:><:string" 
+var ptt = r":>((a<:b)+c)*" #test2 not∋ca,∋abca # r":>((a<:b)*c)*" #test2 ∋ca ==> Fact2 of manuscript is "insufficient"
+#var ptt = r":>^R[+\-]:>^C[0-9]*(\.[0-9]|[0-9]<:_G\.)[0-9]*<:_B" # r":>(0|1)*1(0|1)<:(0|1)<:" # r":>(0|1(<:_B01*<:_C0|11)*1<:_D0)*<:_A" # r":>([A-Z][a-z]*<: )*" # r":>(0:><:1)*<:" # r":>^00:>^10:>^201<:_41<:_51<:_6" # r"(a|:>b)*<:" # r"empty:><:string" 
+#var ptt = r":>(a|[])(b|[])<:" # r":>a|<:"#={} # r":>(a|[])<:"#=a+ε # r":>a[]<:" #=aε # r":>[]<:" #=ε # for check of rule F -> [] addition
+#var ptt = r":>.*<:" # r":>a?<:"#=a+empstr # r":>a*+<:" #:error # r":>|<:"#1={} # r":>(a|a)<:"#2=a+a # r":>(a|)<:"#:error # r":>(a||a)<:"#:error # r":>(|a)<:" #:error r":>(|)<:" #:error # for check of rule F -> [] addition
 ## r":>(0?0?<:1)*" # r":>1?(01)*0?<:" # r"(<:a:>)*" # r"(:>a<:)*" # r":><:?" # r":>?<:" # r":>*<:" # r":>+<:" # r"(:>a<:b)+" # r"(:>a<:b)(:>a<:b)*" # r"(:>a<:b)*" # r":>(a<:)+" # r":>(a<:)*(a<:)" # r":>(a<:)(a<:)*" # r":>(0<:|0)"
 var p= initOptParser(ptt & @[]); p.next(); ptt = p.key # for command line execution
 
@@ -17,7 +20,7 @@ node [shape=square] // default shape for ordinary characters
   var c = 0 # for color index in graphviz color scheme 
   for i in stseq:
     case token[i][0]
-    of avachar,chclass,escchar,dotany: spc &= $i & " [label=\"" & token[i][1] & "\"]\n" 
+    of avachar,chclass,escchar,dotany,empstr: spc &= $i & " [label=\"" & token[i][1] & "\"]\n" 
     of initpos:
       if token[i][1] == "":
         spc &= $i & " [label=\"" & token[i][1] & "\",shape=triangle,orientation=270,tailport=e]\n" ; inc(c)
