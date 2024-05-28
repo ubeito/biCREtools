@@ -13,12 +13,13 @@ proc getFollowstr(ptt: cstring): cstring {.exportc.} =
   ptt2 = expndrepeat($ptt)
   var fstr: string
   (follow, token) = biCREfollowtoken(ptt2)
-  fstr = "final follow = " & $follow & "\p"
-  fstr &= "final token = " & $token & "\p"
-  fstr &= "regex string = "
+  fstr &= "regex = "
   for i in 0..<len(ptt2):
     fstr &= "\"" & ptt2[i] & "\"[" & $i & "] "
-  fstr &= "\p\p"
+  fstr &= "\p"
+  fstr &= "token = " & $token & "\p"
+  fstr &= "follow = " & $follow & "\p"
+  fstr &= "\p"
   return fstr # Warning: implicit conversion to 'cstring' from a non-const location
 
 proc getPoseautostr(): cstring {.exportc.} = # the button disable = true until getFollowstr invoked
@@ -44,7 +45,7 @@ proc getAllkindsstr():  cstring {.exportc.} = # the button disable = true until 
 
 proc getREstrs(ptt: cstring): cstring {.exportc.} = # the button disable = false from beginning
   let tkseqs = toREs($ptt)
-  result = "decomposed expressions = \p"
+  result &= "decomposed expressions of \"" & $ptt & "\" =\p"
   for i, tks in tkseqs: result &= $i & ": \"" & tks.toStr & "\"\p"
   result &= "\p"
 
