@@ -70,13 +70,13 @@ proc simplifyEmpStr(tkseq0: seq[(Tokenkind, string)]): seq[(Tokenkind, string)] 
     if tkseq[i][0] != empstr: inc(i); continue # else: "[]" found
     let rtk = tkseq[i+1]; if rtk == (avachar, "*") or rtk == (avachar, "?") or rtk == (avachar, "+"): tkseq.delete(i+1) else: inc(i)
   return tkseq
-proc eraseEmpStr(tkseq0: seq[(Tokenkind, string)]): seq[(Tokenkind, string)] = # "[]" not being ([]),|[]),([]| ==> ""
+proc eraseEmpStr(tkseq0: seq[(Tokenkind, string)]): seq[(Tokenkind, string)] = # "[]" not being ([]),|[]),([]|,|[]| ==> ""
   var tkseq = tkseq0; var i = 0
   while (i < tkseq.len): # search "[]" from left to right #    echo "i=",i," tkseq=",tkseq
     if tkseq[i][0] != empstr: inc(i); continue # else: "[]" found
     if i-1 >= 0 and i+1 < tkseq.len: # at non-boudaries of tkseq
       let ltk = tkseq[i-1][1]; let rtk = tkseq[i+1][1]
-      if (ltk,rtk) != ("(","|") and (ltk,rtk) != ("|",")") and (ltk,rtk) != ("|","|"): tkseq.delete(i) else: inc(i)
+      if (ltk,rtk) != ("(","|") and (ltk,rtk) != ("|",")") and (ltk,rtk) != ("|","|") and (ltk,rtk) != ("(",")"): tkseq.delete(i) else: inc(i)
     elif i == 0 and i+1 < tkseq.len: # at left boundary of tkseq
       let rtk = tkseq[i+1][1]; if rtk != "|": tkseq.delete(i) else: inc(i)
     elif i-1 >= 0 and i+1 == tkseq.len: # at right boundary of tkseq
@@ -203,7 +203,7 @@ when isMainModule:
   # r"a|b(c|d(e:>|f(<:g)*)*)*"#=> @[":>(e|f(g)*)*f(g)*<:", ":>(e|f(g)*)*(c|d(e|f(g)*)*)*d(e|f(g)*)*f(g)*<:"]
   # r"(j(a|b:>c|i)(d|e)(f<:g|h)k)" # r"a|b(c|d(e:>|f(g)*(<:g)))"#=>@[] # r"a|b(c|d(e:>|f(g)*)(e|f(g)*)*(e|f(g)*(<:g)))"#=>@[":>(e|f(g)*)*f(g)*<:"] # r"a|b(c|d(e:>|f(g)*)(e|f(g)*)*)(c|d(e|f(g)*)*)*(c|d(e|f(g)*)*(e|f(g)*(<:g)))"#=>@[":>(e|f(g)*)*(c|d(e|f(g)*)*)*d(e|f(g)*)*f(g)*<:"] # 
   # r"(a:>b)*c(d<:e)*" # r"f(a(b:>c)*d<:e)*g" # r":>a(:>b<:)*"#=>@[":>a(b)*b<:", ":>b<:", ":>b(b)*b<:"] # r":>((a<:b)*c)*"#=>":>((ab)*c)*(ab)*a<:" #  
-  # r":>*<:*"#=>":><:" # r":><:*"#=>":><:" # r":>*<:"#=>":><:" # r"(<::>)*"#=>":>()*<:" # r"(<:|:>)*"#=>":>([]|)*<:" # r"(0<::>1)*"#=>":>1(01)*0<:" # r"(0:><:1)*"#=>@[":><:", ":>1(01)*0<:"] # r"(0*<:2:>1*)*"#=>":>1*(0*21*)*0*<:" # r":>(0:><:1)*<:"#=>@[":><:", ":>1(01)*0<:", ":>1(01)*<:", ":>(01)*0<:", ":>(01)*<:"] # 
+  # r":>*<:*"#=>":><:" # r":><:*"#=>":><:" # r":>*<:"#=>":><:" # r"(<::>)*"#=>":>([])*<:" # r"(<:|:>)*"#=>":>([]|)*<:" # r"(0<::>1)*"#=>":>1(01)*0<:" # r"(0:><:1)*"#=>@[":><:", ":>1(01)*0<:"] # r"(0*<:2:>1*)*"#=>":>1*(0*21*)*0*<:" # r":>(0:><:1)*<:"#=>@[":><:", ":>1(01)*0<:", ":>1(01)*<:", ":>(01)*0<:", ":>(01)*<:"] # 
   # r"a|b(c|d(e:>|f(<:g)*)*)*" # ==> @[":>(e|f(g)*)*f(g)*<:", ":>(e|f(g)*)*(c|d(e|f(g)*)*)*d(e|f(g)*)*f(g)*<:"]
   # r"(a(b:>a*<:b)*a|b)*" # ==> @[":>a*<:", ":>a*b(ba*b)*ba*<:", ":>a*b(ba*b)*a(a(ba*b)*a|b)*a(ba*b)*ba*<:"]
   # r":>((a<:_1b)*c<:_2)*"#ε# # r"(a:>(b<:c)*)*"#ε# # r":>((a<:b)*c)*"#ε# # r":>^1a<:_1b:>^2c<:_2d:>^1e<:_1"#editor's example # r"(a<:(b:>c)*)*"#ε# 
