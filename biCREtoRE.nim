@@ -199,7 +199,9 @@ when isMainModule:
   #":>((0|(0|10)(0000)*001)(1(0000)*001)*0)*(0|(0|10)(0000)*001)(1(0000)*001)*<:_R", 
   #":>((0|(0|10)(0000)*001)(1(0000)*001)*0)*1<:_B", 
   #":>((0|(0|10)(0000)*001)(1(0000)*001)*0)*(0|(0|10)(0000)*001)(1(0000)*001)*1(0000)*000<:_B"]
-  # r":>((aa|bb)*<:(ab|ba)(aa|bb)*(ab|ba))*" #=> @[":>((aa|bb)*(ab|ba)(aa|bb)*(ab|ba))*(aa|bb)*<:"] # r"((b:><:b|aa)*(b:><:a|ab)(a:><:a|bb)*(a:><:b|ba))*" #=> @[":>a(aa|bb)*(ab|ba)((bb|aa)*(ba|ab)(aa|bb)*(ab|ba))*(bb|aa)*b<:", ":><:", ":>a(aa|bb)*a<:", ...
+  # r":>((aa|bb)*<:(ab|ba)(aa|bb)*(ab|ba))*" #=> @[":>((aa|bb)*(ab|ba)(aa|bb)*(ab|ba))*(aa|bb)*<:"] # Ex.2.4 contains even a’s and b’s
+  # r"((b:><:b|aa)*(b:><:a|ab)(a:><:a|bb)*(a:><:b|ba))*" #=> @[":>a(aa|bb)*(ab|ba)((bb|aa)*(ba|ab)(aa|bb)*(ab|ba))*(bb|aa)*b<:", ":><:", ":>a(aa|bb)*a<:", ...
+  # r"(aa(ab|ba)*bb|ab|ba|bb(ab|b:><:a)*aa)*"#=> 0: ":><:" 1: ":>a(ab|ba)*b<:" 2: ":>a(ab|ba)*aa(aa(ab|ba)*bb|ab|ba|bb(ab|ba)*aa)*bb(ab|ba)*b<:" # a software buffer of capacity 6 in state elimination order 0 < 2 < 4 < 6 < 1 < 5 < 3
   # r"a|b(c|d(e:>|f(<:g)*)*)*"#=> @[":>(e|f(g)*)*f(g)*<:", ":>(e|f(g)*)*(c|d(e|f(g)*)*)*d(e|f(g)*)*f(g)*<:"]
   # r"(j(a|b:>c|i)(d|e)(f<:g|h)k)" # r"a|b(c|d(e:>|f(g)*(<:g)))"#=>@[] # r"a|b(c|d(e:>|f(g)*)(e|f(g)*)*(e|f(g)*(<:g)))"#=>@[":>(e|f(g)*)*f(g)*<:"] # r"a|b(c|d(e:>|f(g)*)(e|f(g)*)*)(c|d(e|f(g)*)*)*(c|d(e|f(g)*)*(e|f(g)*(<:g)))"#=>@[":>(e|f(g)*)*(c|d(e|f(g)*)*)*d(e|f(g)*)*f(g)*<:"] # 
   # r"(a:>b)*c(d<:e)*" # r"f(a(b:>c)*d<:e)*g" # r":>a(:>b<:)*"#=>@[":>a(b)*b<:", ":>b<:", ":>b(b)*b<:"] # r":>((a<:b)*c)*"#=>":>((ab)*c)*(ab)*a<:" #  
