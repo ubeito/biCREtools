@@ -95,7 +95,7 @@ proc toSStr*(tkseqs: seq[seq[(Tokenkind, string)]]): string = # replacement of "
   for i, tks in tkseqs: result &= $i & ": \"" & tks.toStr & "\"\n"
 
 proc toREs*(ptt0: string): seq[seq[(Tokenkind, string)]] = # decomposition of biCRE to RE vector of indivisual ini & acc pairs
-  # 0. resolve qmark,pmark operaters α?,α+ if α contains ini or acc position markers :>,<:
+  # 0. resolve qmark,pmark operators α?,α+ if α contains ini or acc position markers :>,<:
   let ptt = expandQmarkPmark(ptt0)
   let tkseq = ptt.toTokenseq   #echo "tkseq.toStr= ",": ", tkseq.toStr()
   # 1. make table of pairs-scattering seqs
@@ -116,7 +116,7 @@ proc toREs*(ptt0: string): seq[seq[(Tokenkind, string)]] = # decomposition of bi
       let (iposl, aposl) = findIniAccpos(tks); let (ipos, apos) = (iposl[0], aposl[0]) # assume iposl,aposl has unique element #      echo "ipos= ",ipos," apos= ", apos
       # 2.1 find star loops
       var stars: seq[int]; (0..<tks.len).toSeq.filterIt(tks[it] == (avachar,"*")).apply(proc(it: int) = stars &= it) # assume no +,? operator #      echo "stars= ",stars
-      var stloops: seq[(int,int)] # range of star operater including (possible) parehtheses
+      var stloops: seq[(int,int)] # range of star operator including (possible) parehtheses
       for k in stars:
         if tks[k-1] == (avachar,")"): stloops &= (tks.findLParenth(k-1), k-1)
         else: stloops &= (k-1, k-1) #       echo "stloops= ",stloops
@@ -167,7 +167,7 @@ proc toREs*(ptt0: string): seq[seq[(Tokenkind, string)]] = # decomposition of bi
       if lp == -1: tks = tks[ipos..<tks.len]; ipos = 0; break # left parenth '(' not found and reached at left end: go to right peeling
       tks = tks[0..<lp] & tks[ipos..<tks.len]; ipos = lp # preserve the other segs
       let rp = tks.findRParenth(ipos); if rp == tks.len: raise newException(IOError, "unbalanced parentheses") # ')' not found, not balanced
-      # delete seg from sum operater (if any) included to right parenth included
+      # delete seg from sum operator (if any) included to right parenth included
       var rs = tks.findRSumop(ipos) # skip to right '|'
       if rs == -1: rs = rp # rightward sum op '|' not found and reached at right parenth ')': regard ')' as '|'
       tks = tks[0..<rs] & tks[rp+1..<tks.len] # preserve the other segs
@@ -180,7 +180,7 @@ proc toREs*(ptt0: string): seq[seq[(Tokenkind, string)]] = # decomposition of bi
       if rp == tks.len: tks = tks[0..apos]; break # right parenth ')' not found and reached at right end: current tks completed
       tks = tks[0..apos] & tks[rp+1..<tks.len] # preserve the other segs
       let lp = tks.findLParenth(apos); if lp == -1: raise newException(IOError, "unbalanced parentheses") # '(' not found, not balanced
-      # delete seg from sum operater (if any) included to left parenth included
+      # delete seg from sum operator (if any) included to left parenth included
       var ls = tks.findLSumop(apos) # skip to left '|'
       if ls == -1: ls = lp # rightward sum op '|' not found and reached at left parenth '(': regard '(' as '|'
       tks = tks[0..<lp] & tks[ls+1..<tks.len]; apos -= ls - lp + 1 # preserve the other segs
