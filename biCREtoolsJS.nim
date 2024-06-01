@@ -1,5 +1,5 @@
 # nim js biCREtoolsJS.nim => biCREtoolsJS.js
-import bicreMATCHER, tables, sequtils, sets # import bicrePARSERmodule and bicrePREPROrepeat indirectly throuth bicreMATCHER
+import bicreMATCHER, tables, sequtils, sets, algorithm # import bicrePARSERmodule and bicrePREPROrepeat indirectly throuth bicreMATCHER
 import bicrePARSERdiagram, biCREtoRE
 #template `=~`*(x: string, ptt: string): untyped = # to call `runonfrom`
 #let x = "webmaster@example.com" #,r"a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-@a-zA-Z0-9.a-zA-Z0-9.a-zA-Z0-9","ab@cd-.ef"
@@ -17,8 +17,10 @@ proc getFollowstr(ptt: cstring): cstring {.exportc.} =
   for i in 0..<len(ptt2):
     fstr &= "\"" & ptt2[i] & "\"[" & $i & "] "
   fstr &= "\p"
-  fstr &= "token = " & $token & "\p"
-  fstr &= "follow = " & $follow & "\p"
+  let stoken = token.pairs.toSeq.sortedByIt(it[0]).toOrderedTable
+  fstr &= "token = " & $stoken & "\p"
+  let sfollow = follow.pairs.toSeq.sortedByIt(it[0]).toOrderedTable
+  fstr &= "follow = " & $sfollow & "\p"
   fstr &= "\p"
   return fstr # Warning: implicit conversion to 'cstring' from a non-const location
 
