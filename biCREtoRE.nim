@@ -135,16 +135,16 @@ proc toREs*(ptt0: string): seq[seq[(Tokenkind, string)]] = # decomposition of bi
         let alpha0ia = if ipos < apos: tks[il[0]..<ipos] & etk & tks[ipos+1..<apos] & tks[apos+1..il[1]] else: tks[il[0]..<apos] & etk & tks[apos+1..<ipos] & tks[ipos+1..il[1]]
         newscttkseqs &= pref & alpha0a & alpha0ia & (avachar,"*") & alpha0i & suff[1..<suff.len]
       elif il != (-1,-1) and al == (-1,-1): # (2) ini marker is in a star loop T[α[:>]*] ==> T[α[:>]α[ε]*]
-        let alpha = tks[il[0]..il[1]]; let alpha0 = if il[0] != il[1]: tks[il[0]..<ipos] & etk & tks[ipos+1..il[1]] else: etk # for :>*, :>+
+        let alpha = tks[il[0]..il[1]]; let alpha0 = if il[0] != il[1]: tks[il[0]..<ipos] & etk & tks[ipos+1..il[1]] else: etk # for :>*
         let pref = tks[0..<il[0]]; let suff = tks[il[1]+1..<tks.len]
         newscttkseqs &= pref & alpha & alpha0 & (avachar,"*") & suff[1..<suff.len]
       elif il == (-1,-1) and al != (-1,-1): # (3) acc marker is in a star loop T[α[<:]*] ==> T[α[ε]*α[<:]]
-        let alpha = tks[al[0]..al[1]]; let alpha0 = if al[0] != al[1]: tks[al[0]..<apos] & etk & tks[apos+1..al[1]] else: etk # for <:*, <:+
+        let alpha = tks[al[0]..al[1]]; let alpha0 = if al[0] != al[1]: tks[al[0]..<apos] & etk & tks[apos+1..al[1]] else: etk # for <:*
         let pref = tks[0..<al[0]]; let suff = tks[al[1]+1..<tks.len]
         newscttkseqs &= pref & alpha0 & (avachar,"*") & alpha & suff[1..<suff.len]
       else: #il != (-1,-1) and al != (-1,-1): # (4) ini and acc markers are in separated loops T[α[:>]*,β[<:]*] ==> T[α[:>]α[ε]*,β[ε]*β[<:]]
-        let alpha = tks[il[0]..il[1]]; let alpha0 = if il[0] != il[1]: tks[il[0]..<ipos] & etk & tks[ipos+1..il[1]] else: etk # for :>*, :>+
-        let beta = tks[al[0]..al[1]]; let beta0 = if al[0] != al[1]: tks[al[0]..<apos] & etk & tks[apos+1..al[1]] else: etk # for <:*, <:+
+        let alpha = tks[il[0]..il[1]]; let alpha0 = if il[0] != il[1]: tks[il[0]..<ipos] & etk & tks[ipos+1..il[1]] else: etk # for :>*
+        let beta = tks[al[0]..al[1]]; let beta0 = if al[0] != al[1]: tks[al[0]..<apos] & etk & tks[apos+1..al[1]] else: etk # for <:*
         if ipos < apos:
           let pref = tks[0..<il[0]]; let cent = tks[il[1]+1..<al[0]]; let suff = tks[al[1]+1..<tks.len]
           newscttkseqs &= pref & alpha & alpha0 & (avachar,"*") & cent[1..<cent.len] & beta0 & (avachar,"*") & beta & suff[1..<suff.len]
