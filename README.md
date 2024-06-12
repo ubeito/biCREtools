@@ -1,6 +1,6 @@
 # biCREtools
 
-![](https://github.com/ubeito/biCREtools/blob/main/biCREdiagramEx1.png)
+![](https://github.com/ubeito/biCREtools/blob/main/autoimgs/biCREdiagramEx1.png)
 
 This repository intends for disclosure of biCRE-related tools to confirm the validity of our research on **Bilaterally Colored Finite Automata** and **Bilaterally Colored Regular Expressions**.
 
